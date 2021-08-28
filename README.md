@@ -10,7 +10,7 @@ mvn package
 
 ## Sample event
 
-Events are produced every five minutes (during trading hours).
+Events are produced every minute (during trading hours).
 
 ```json
 {
@@ -40,10 +40,10 @@ A sample configuration file called [`sample-connector.properties`](https://githu
 
 This was written for a quick prototype proof-of-concept based on processing live stock price events, but I wanted something that I could use with a [free API key](https://www.alphavantage.co/support/#api-key).
 
-To enable this, the connector is downloading historical events using [an Alpha Vantage API that returns several days of five-minute interval time-series records for a stock](https://www.alphavantage.co/documentation/#intraday). It then sends individual price events to Kafka time-shifted by `delay.hours`.
+To enable this, the connector is downloading historical events using [an Alpha Vantage API that returns several days of one-minute interval time-series records for a stock](https://www.alphavantage.co/documentation/#intraday). It then sends individual price events to Kafka time-shifted by `delay.hours`.
 
 For example, if you set `delay.hours` to 24, then it will download the last day of stock price records, and then start sending them to Kafka - each event produced 24 hours after the timestamp in the price record.
 
-This means **the Connector only needs to make one API call a day**, which is easily within the limits for a free API key. But it produces an event every five minutes (during trading hours) which makes it useful for demos and proof-of-concepts that need (pseudo-)real-time stock price events.
+This means **the Connector only needs to make one API call a day**, which is easily within the limits for a free API key. But it produces an event every minute (during trading hours) which makes it useful for demos and proof-of-concepts that need (pseudo-)real-time stock price events.
 
 By default, the delay is set to 168 hours (one week) which means events are published on weekdays and not at weekends, which helps make for a more believable data source.

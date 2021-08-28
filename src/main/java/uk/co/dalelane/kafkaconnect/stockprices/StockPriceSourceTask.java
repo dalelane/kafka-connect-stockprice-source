@@ -47,7 +47,7 @@ public class StockPriceSourceTask extends SourceTask {
     
     @Override
     public String version() {
-        return "0.0.1";
+        return "0.0.2";
     }
     
     

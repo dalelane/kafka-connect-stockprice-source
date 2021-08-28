@@ -40,7 +40,7 @@ public class FetcherTask extends TimerTask {
                 .timeSeries()
                 .intraday()
                 .forSymbol(connectorConfig.getStockSymbol())
-                .interval(Interval.FIVE_MIN)
+                .interval(Interval.ONE_MIN)
                 .outputSize(OutputSize.FULL)
                 .fetchSync();
         
