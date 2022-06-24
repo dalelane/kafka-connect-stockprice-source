@@ -34,6 +34,9 @@ For foreign exchange data (FX), data is produced for the currency pair specified
     "datetime"  : "2022-06-20 20:45:00"
 }
 ```
+Note that Alpha Vantage do not publish as much history for FX data, so a delay of 168 hours
+and an event emit interval of 1 minute may produce no data; a 15 minute interval does produce
+data that far back, but for a 1 minute interval a delay of 24 hours or less would be better.
 
 ## Configuration
 
