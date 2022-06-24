@@ -10,25 +10,24 @@ import org.apache.kafka.connect.source.SourceRecord;
 
 import uk.co.dalelane.kafkaconnect.stockprices.StockPriceConfig;
 
-public class StockRecordFactory extends RecordFactory {
+public class ForexRecordFactory extends RecordFactory {
     
     public static final String SOURCE_OFFSET = "timestamp";
-    public static final String SOURCE_PARTITION = "stock";
+    public static final String SOURCE_PARTITION = "forex";
    
     private final String topicName;
-    private final String stockSymbol;
+    private final String combinedFromToSymbol;
     
-    public StockRecordFactory(StockPriceConfig config) {
+    public ForexRecordFactory(StockPriceConfig config) {
         this.topicName = config.getTopic();
-        this.stockSymbol = config.getStockSymbol();
+        this.combinedFromToSymbol = config.getForexFromSymbol()+config.getForexFromSymbol();
     }
     
-    private static final Schema SCHEMA = SchemaBuilder.struct().name("stockdata")
+    private static final Schema SCHEMA = SchemaBuilder.struct().name("forexdata")
             .field("open", Schema.FLOAT64_SCHEMA)
             .field("high", Schema.FLOAT64_SCHEMA)
             .field("low", Schema.FLOAT64_SCHEMA)
             .field("close", Schema.FLOAT64_SCHEMA)
-            .field("volume", Schema.INT64_SCHEMA)
             .field("timestamp", Schema.INT64_SCHEMA)
             .field("datetime", Schema.STRING_SCHEMA)
             .build();
@@ -39,7 +38,6 @@ public class StockRecordFactory extends RecordFactory {
         struct.put(SCHEMA.field("high"), data.getHigh());
         struct.put(SCHEMA.field("low"), data.getLow());
         struct.put(SCHEMA.field("close"), data.getClose());
-        struct.put(SCHEMA.field("volume"), data.getVolume());
         struct.put(SCHEMA.field("timestamp"), data.getTimestamp());
         struct.put(SCHEMA.field("datetime"), data.getDateTime());
         return struct;
@@ -47,7 +45,7 @@ public class StockRecordFactory extends RecordFactory {
     
     
     public SourceRecord createSourceRecord(MarketUnitData data) {
-        return new SourceRecord(createSourcePartition(stockSymbol), 
+        return new SourceRecord(createSourcePartition(combinedFromToSymbol), 
                                 createSourceOffset(data), 
                                 topicName, 
                                 SCHEMA, 
@@ -59,7 +57,7 @@ public class StockRecordFactory extends RecordFactory {
         return Collections.singletonMap(SOURCE_OFFSET, data.getTimestamp());
     }
     
-    public static Map<String, Object> createSourcePartition(String stocksymbol) {
-        return Collections.singletonMap(SOURCE_PARTITION, stocksymbol);
+    public static Map<String, Object> createSourcePartition(String combinedFromToSymbol) {
+        return Collections.singletonMap(SOURCE_PARTITION, combinedFromToSymbol);
     }
 }

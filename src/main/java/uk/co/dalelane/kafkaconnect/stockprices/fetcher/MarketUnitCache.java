@@ -6,40 +6,63 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.crazzyghost.alphavantage.timeseries.response.StockUnit;
+import com.crazzyghost.alphavantage.forex.response.ForexUnit;
 
-import uk.co.dalelane.kafkaconnect.stockprices.data.StockUnitData;
-import uk.co.dalelane.kafkaconnect.stockprices.data.StockUnitDataComparator;
+import uk.co.dalelane.kafkaconnect.stockprices.data.MarketUnitData;
+import uk.co.dalelane.kafkaconnect.stockprices.data.MarketUnitDataComparator;
 
-public class StockUnitCache {
+public class MarketUnitCache {
     
-    private final SortedSet<StockUnitData> stockUnitsCache;
+    private static Logger log = LoggerFactory.getLogger(MarketUnitCache.class);
+    
+    private final SortedSet<MarketUnitData> marketUnitsCache;
     private long offsetTimestamp;
     private ZoneOffset tzOffset;
     
-    public StockUnitCache(long timestamp, ZoneOffset offset) {
-        stockUnitsCache = new TreeSet<>(new StockUnitDataComparator());
+    public MarketUnitCache(long timestamp, ZoneOffset offset) {
+        marketUnitsCache = new TreeSet<>(new MarketUnitDataComparator());
         offsetTimestamp = timestamp;
         tzOffset = offset;
     }
     
-    public synchronized void addStockUnits(List<StockUnit> stockunits) {
+    public synchronized void addUnits(List<StockUnit> stockunits) {
+        int numberAdded = 0;
         for (StockUnit su : stockunits) {
-            StockUnitData stockUnitData = new StockUnitData(su, tzOffset);
-            if (stockUnitData.getTimestamp() > offsetTimestamp) {
-                stockUnitsCache.add(stockUnitData);
+            MarketUnitData MarketUnitData = new MarketUnitData(su, tzOffset);
+
+            if (MarketUnitData.getTimestamp() > offsetTimestamp) {
+                numberAdded++;
+                marketUnitsCache.add(MarketUnitData);
             }
         }
+        log.info("Found "+stockunits.size()+" StockUnits and added "+numberAdded+" based on offset timestamp "+offsetTimestamp);
     }
     
-    public synchronized List<StockUnitData> getStockUnitData(long timestampThreshold) {
-        List<StockUnitData> items = new ArrayList<>();
+    public synchronized void addForexUnits(List<ForexUnit> forexunits) {
+        int numberAdded = 0;
+        for (ForexUnit su : forexunits) {
+            MarketUnitData MarketUnitData = new MarketUnitData(su, tzOffset);
+
+            if (MarketUnitData.getTimestamp() > offsetTimestamp) {
+                numberAdded++;
+                marketUnitsCache.add(MarketUnitData);
+            }
+        }
+        log.info("Found "+forexunits.size()+" ForexUnits and added "+numberAdded+" based on offset timestamp "+offsetTimestamp);
+    }
+    
+    public synchronized List<MarketUnitData> getMarketUnitData(long timestampThreshold) {
+        List<MarketUnitData> items = new ArrayList<>();
         
-        while (stockUnitsCache.isEmpty() == false) {
-            StockUnitData nextItem = stockUnitsCache.first();
+        while (marketUnitsCache.isEmpty() == false) {
+            MarketUnitData nextItem = marketUnitsCache.first();
             
             if (nextItem.getTimestamp() < timestampThreshold) {
-                stockUnitsCache.remove(nextItem);
+                marketUnitsCache.remove(nextItem);
                 offsetTimestamp = nextItem.getTimestamp();
                 
                 items.add(nextItem);

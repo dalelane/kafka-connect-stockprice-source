@@ -9,6 +9,7 @@ import com.crazzyghost.alphavantage.AlphaVantage;
 import com.crazzyghost.alphavantage.Config;
 import com.crazzyghost.alphavantage.parameters.Interval;
 import com.crazzyghost.alphavantage.parameters.OutputSize;
+import com.crazzyghost.alphavantage.forex.response.ForexResponse;
 import com.crazzyghost.alphavantage.timeseries.response.TimeSeriesResponse;
 
 import uk.co.dalelane.kafkaconnect.stockprices.StockPriceConfig;
@@ -17,10 +18,10 @@ public class FetcherTask extends TimerTask {
 
     private static Logger log = LoggerFactory.getLogger(FetcherTask.class);
     
-    private final StockUnitCache dataCache;
+    private final MarketUnitCache dataCache;
     private final StockPriceConfig connectorConfig;
     
-    public FetcherTask(StockUnitCache cache, StockPriceConfig config) {
+    public FetcherTask(MarketUnitCache cache, StockPriceConfig config) {
         log.info("Initializing alphavantage API");
         Config cfg = Config.builder()
                 .key(config.getApiKey())
@@ -34,17 +35,40 @@ public class FetcherTask extends TimerTask {
     
     @Override
     public void run() {
-        log.info("fetching data");
         
-        TimeSeriesResponse response = AlphaVantage.api()
+        if ( !connectorConfig.getStockSymbol().isEmpty() )
+        {
+            log.info("fetching stock data for interval "+connectorConfig.getEventEmitIntervalAsEnum().toString());
+        
+            TimeSeriesResponse response = AlphaVantage.api()
                 .timeSeries()
                 .intraday()
                 .forSymbol(connectorConfig.getStockSymbol())
-                .interval(Interval.ONE_MIN)
+                .interval(connectorConfig.getEventEmitIntervalAsEnum())
                 .outputSize(OutputSize.FULL)
                 .fetchSync();
-        
-        dataCache.addStockUnits(response.getStockUnits());
+
+            //log.info("retrieved data: "+response.getStockUnits());
+
+            dataCache.addUnits(response.getStockUnits());
+        }
+        else
+        {
+            log.info("fetching forex data for interval "+connectorConfig.getEventEmitIntervalAsEnum().toString());
+
+            ForexResponse response = AlphaVantage.api()
+                .forex()
+                .intraday()
+                .fromSymbol(connectorConfig.getForexFromSymbol())
+                .toSymbol(connectorConfig.getForexToSymbol())
+                .interval(connectorConfig.getEventEmitIntervalAsEnum())
+                .outputSize(OutputSize.FULL)
+                .fetchSync();
+            
+            //log.info("retrieved data: "+response.getForexUnits());
+
+            dataCache.addForexUnits(response.getForexUnits());
+        }
     }
 
 }

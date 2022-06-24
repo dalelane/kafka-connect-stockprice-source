@@ -8,7 +8,8 @@ import org.apache.kafka.connect.source.SourceTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.dalelane.kafkaconnect.stockprices.data.SourceRecordFactory;
+import uk.co.dalelane.kafkaconnect.stockprices.data.StockRecordFactory;
+import uk.co.dalelane.kafkaconnect.stockprices.data.ForexRecordFactory;
 import uk.co.dalelane.kafkaconnect.stockprices.fetcher.DataMonitor;
 
 public class StockPriceSourceTask extends SourceTask {
@@ -41,13 +42,14 @@ public class StockPriceSourceTask extends SourceTask {
     
     @Override
     public List<SourceRecord> poll() throws InterruptedException {
-        return sourceData.getRecords();
+        List<SourceRecord> retval = sourceData.getRecords();
+        return retval;
     }
 
     
     @Override
     public String version() {
-        return "0.0.2";
+        return "0.0.3";
     }
     
     
@@ -55,13 +57,27 @@ public class StockPriceSourceTask extends SourceTask {
     private long getPersistedOffset(StockPriceConfig config) {
         long offsetTimestamp = 0;
         Map<String, Object> persistedOffsetInfo = null;
+
+        
         if (context != null && context.offsetStorageReader() != null) {
-            String stock = config.getStockSymbol();           
-            Map<String, Object> sourcePartition = SourceRecordFactory.createSourcePartition(stock);
-            persistedOffsetInfo = context.offsetStorageReader().offset(sourcePartition);
+            if ( !config.getStockSymbol().isEmpty() )
+            {
+                Map<String, Object> sourcePartition = StockRecordFactory.createSourcePartition(config.getStockSymbol());
+                persistedOffsetInfo = context.offsetStorageReader().offset(sourcePartition);
+            }
+            else
+            {
+                Map<String, Object> sourcePartition = ForexRecordFactory.createSourcePartition(config.getForexFromSymbol()+config.getForexFromSymbol());
+                persistedOffsetInfo = context.offsetStorageReader().offset(sourcePartition);
+            }
         }
         if (persistedOffsetInfo != null) {
-            Object lastOffsetTimestamp = persistedOffsetInfo.get(SourceRecordFactory.SOURCE_OFFSET);
+            Object lastOffsetTimestamp = null;
+            if ( !config.getStockSymbol().isEmpty() )
+                lastOffsetTimestamp = persistedOffsetInfo.get(StockRecordFactory.SOURCE_OFFSET);
+            else
+                lastOffsetTimestamp = persistedOffsetInfo.get(ForexRecordFactory.SOURCE_OFFSET);
+
             if (lastOffsetTimestamp != null) {
                 offsetTimestamp = (Long) lastOffsetTimestamp;
             }

@@ -23,6 +23,17 @@ Events are produced every minute (during trading hours).
     "datetime"  : "2021-08-20 12:00:00"
 }
 ```
+For foreign exchange data (FX), data is produced for the currency pair specified.
+```json
+{
+    "open"      : 1.23,
+    "high"      : 1.23,
+    "low"       : 1.22,
+    "close"     : 1.23,
+    "timestamp" : 1655757900,
+    "datetime"  : "2022-06-20 20:45:00"
+}
+```
 
 ## Configuration
 
@@ -33,6 +44,9 @@ Events are produced every minute (during trading hours).
 | `stock.symbol`          | Stock symbol to retrieve prices for           | String  |         | IBM                        |
 | `topic`                 | Kafka topic to produce stock price data to    | String  |         | TOPIC.IBM                  |
 | `delay.hours`           | Number of hours to delay delivering events    | Integer | 168     | 24                         |
+| `forex.from.symbol`     | Source currency (if no stock symbol)          | String  |         | GBP                        |
+| `forex.to.symbol`       | Destination currency (if no stock symbol)     | String  |         | USD                        |
+| `event.emit.interval`   | Event publish interval                        | String  | 1min    | 15min                      |
 
 A sample configuration file called [`sample-connector.properties`](https://github.com/dalelane/kafka-connect-stockprice-source/blob/main/sample-connector.properties) is included.
 

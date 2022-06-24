@@ -4,9 +4,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
+import com.crazzyghost.alphavantage.forex.response.ForexUnit;
 import com.crazzyghost.alphavantage.timeseries.response.StockUnit;
 
-public class StockUnitData {
+public class MarketUnitData {
 
     private double open;
     private double high;
@@ -19,12 +20,21 @@ public class StockUnitData {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     
-    public StockUnitData(StockUnit data, ZoneOffset offset) {
+    public MarketUnitData(StockUnit data, ZoneOffset offset) {
         open = data.getOpen();
         high = data.getHigh();
         low = data.getLow();
         close = data.getClose();
         volume = data.getVolume();
+        datetime = data.getDate();
+        timestamp = parseDateString(data.getDate(), offset);
+    }
+    public MarketUnitData(ForexUnit data, ZoneOffset offset) {
+        open = data.getOpen();
+        high = data.getHigh();
+        low = data.getLow();
+        close = data.getClose();
+        volume = 0;
         datetime = data.getDate();
         timestamp = parseDateString(data.getDate(), offset);
     }
@@ -69,8 +79,8 @@ public class StockUnitData {
     
     @Override
     public boolean equals(Object o) {
-        if (o instanceof StockUnitData) {
-            return ((StockUnitData)o).getTimestamp() == getTimestamp();
+        if (o instanceof MarketUnitData) {
+            return ((MarketUnitData)o).getTimestamp() == getTimestamp();
         }
         return false;
     }
