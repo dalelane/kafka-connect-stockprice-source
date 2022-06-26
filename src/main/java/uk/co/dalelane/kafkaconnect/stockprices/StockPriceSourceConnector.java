@@ -42,13 +42,22 @@ public class StockPriceSourceConnector extends SourceConnector {
 
         boolean missingApiKey = true;
         boolean missingStockName = true;
+        boolean missingForexFromName = true;
+        boolean missingForexToName = true;
         boolean missingTopicName = true;
+
         for (ConfigValue configValue : validatedConfigs.configValues()) {
             if (configValue.name().equals(StockPriceConfig.API_KEY_PARAM_CONFIG)) {
                 missingApiKey = false;
             }
             else if (configValue.name().equals(StockPriceConfig.STOCK_SYMBOL_PARAM_CONFIG)) {
                 missingStockName = false;
+            }
+            else if (configValue.name().equals(StockPriceConfig.FOREX_FROM_SYMBOL_PARAM_CONFIG)) {
+                missingForexFromName = false;
+            }
+            else if (configValue.name().equals(StockPriceConfig.FOREX_TO_SYMBOL_PARAM_CONFIG)) {
+                missingForexToName = false;
             }
             else if (configValue.name().equals(StockPriceConfig.TOPIC_NAME_PARAM_CONFIG)) {
                 missingTopicName = false;
@@ -57,12 +66,13 @@ public class StockPriceSourceConnector extends SourceConnector {
         if (missingApiKey) {
             throw new ConnectException("API key for Alpha Vantage is required (alpha.vantage.api.key)");
         }
-        if (missingStockName) {
+        if (missingStockName && missingForexFromName && missingForexToName) {
             throw new ConnectException("Stock symbol is required (stock.symbol)");
         }
         if (missingTopicName) {
             throw new ConnectException("Topic name is required (topic)");
         }
+        // TODO: Add checks for forex names
         
         return validatedConfigs;
     }
@@ -92,6 +102,6 @@ public class StockPriceSourceConnector extends SourceConnector {
     
     @Override
     public String version() {
-        return "0.0.1";
+        return "0.0.3";
     }
 }

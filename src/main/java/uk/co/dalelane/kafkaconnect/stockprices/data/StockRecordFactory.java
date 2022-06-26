@@ -10,7 +10,7 @@ import org.apache.kafka.connect.source.SourceRecord;
 
 import uk.co.dalelane.kafkaconnect.stockprices.StockPriceConfig;
 
-public class SourceRecordFactory {
+public class StockRecordFactory extends RecordFactory {
     
     public static final String SOURCE_OFFSET = "timestamp";
     public static final String SOURCE_PARTITION = "stock";
@@ -18,7 +18,7 @@ public class SourceRecordFactory {
     private final String topicName;
     private final String stockSymbol;
     
-    public SourceRecordFactory(StockPriceConfig config) {
+    public StockRecordFactory(StockPriceConfig config) {
         this.topicName = config.getTopic();
         this.stockSymbol = config.getStockSymbol();
     }
@@ -33,7 +33,7 @@ public class SourceRecordFactory {
             .field("datetime", Schema.STRING_SCHEMA)
             .build();
     
-    private static Struct createStruct(StockUnitData data) {
+    private static Struct createStruct(MarketUnitData data) {
         Struct struct =  new Struct(SCHEMA);
         struct.put(SCHEMA.field("open"), data.getOpen());
         struct.put(SCHEMA.field("high"), data.getHigh());
@@ -46,7 +46,7 @@ public class SourceRecordFactory {
     }
     
     
-    public SourceRecord createSourceRecord(StockUnitData data) {
+    public SourceRecord createSourceRecord(MarketUnitData data) {
         return new SourceRecord(createSourcePartition(stockSymbol), 
                                 createSourceOffset(data), 
                                 topicName, 
@@ -55,7 +55,7 @@ public class SourceRecordFactory {
     }
     
     
-    private static Map<String, Object> createSourceOffset(StockUnitData data) {
+    private static Map<String, Object> createSourceOffset(MarketUnitData data) {
         return Collections.singletonMap(SOURCE_OFFSET, data.getTimestamp());
     }
     

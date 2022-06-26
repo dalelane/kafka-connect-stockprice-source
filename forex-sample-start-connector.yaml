@@ -1,0 +1,21 @@
+apiVersion: eventstreams.ibm.com/v1alpha1 
+kind: KafkaConnector 
+metadata: 
+  name: kafka-connect-fx-source
+  labels: 
+    eventstreams.ibm.com/cluster: kafka-connect-fx-source
+spec: 
+  class: uk.co.dalelane.kafkaconnect.stockprices.StockPriceSourceConnector
+  tasksMax: 1 
+  config: 
+    alpha.vantage.api.key: APIKEY_GOES_HERE
+    forex.from.symbol: GBP
+    forex.to.symbol: USD
+    topic: forex.data.GBPtoUSD
+    delay.hours: 160
+    event.emit.interval: 15min
+    errors.log.enable: true
+    errors.log.include.messages: true
+    key.converter: org.apache.kafka.connect.storage.StringConverter
+    value.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter.schemas.enable: false
